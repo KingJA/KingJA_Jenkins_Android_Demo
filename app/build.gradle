@@ -1,28 +1,63 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion COMPILE_SDK_VERSION as int
     defaultConfig {
         applicationId "com.kingja.jenkins"
-        minSdkVersion 14
-        targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion MIN_SDK_VERSION as int
+        targetSdkVersion TARGET_SDK_VERSION as int
+        versionCode VERSION_CODE as int
+        versionName VERSION_NAME
+        buildConfigField("String", "HOST_URL", "\"${HOST_URL}\"")
+        buildConfigField("String", "BUILD_DATE", "\"${BUILD_DATE}\"")
+        resValue "string", "HOST_URL", "${HOST_URL}"
+    }
+    signingConfigs {
+        release {
+            storeFile file("jenkins_demo.jks")
+            storePassword "wzy1gqqbuu"
+            keyAlias "jenkins_demo"
+            keyPassword "wzy1gqqbuu"
+            v1SigningEnabled true
+            v2SigningEnabled true
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+            buildApkBy()
+        }
+        debug {
+            minifyEnabled false
         }
     }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    implementation "com.android.support:appcompat-v7:${SUPPORT_VERSION}"
+}
+
+def buildApkBy() {
+    android.applicationVariants.all { variant ->
+        variant.getPackageApplication().outputScope.apkDatas.forEach { apkData ->
+            def versionName = variant.versionName
+            def buildDate = releaseTime()
+            def buildType = variant.buildType.name
+            if (IS_JENKINS =="true") {
+                buildDate = BUILD_DATE
+                buildType = BUILD_TYPE
+                variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath + "/apk")
+            }
+            apkData.outputFileName = APP_NAME + "_" +
+                    versionName + "_" + buildDate + "_" + buildType + ".apk"
+        }
+    }
+}
+
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd", TimeZone.getTimeZone("UTC"))
 }
