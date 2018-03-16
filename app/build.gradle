@@ -50,7 +50,8 @@ def buildApkBy() {
             if (IS_JENKINS =="true") {
                 buildDate = BUILD_DATE
                 buildType = BUILD_TYPE
-                variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath + "/apk")
+//                variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath + "/apk")
+                variant.getPackageApplication().outputDirectory = new File(APK_PATH)
             }
             apkData.outputFileName = APP_NAME + "_" +
                     versionName + "_" + buildDate + "_" + buildType + ".apk"
